@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FormController {
 
-    @PostMapping("/submit")
-    public String handleSubmit(@RequestParam String field1, @RequestParam String field2) {
+@PostMapping("/submit")
+    public String handleSubmit(
+            @RequestParam("field1") String field1,
+            @RequestParam("field2") String field2) {
         return "Received: " + field1 + ", " + field2;
     }
 }
