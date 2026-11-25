@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.github.node-gradle.node' version '7.1.0'
 }
 
 group = 'com.tpse86'
@@ -30,9 +31,35 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Frontend (React + Vite) in ./frontend.
+// Gradle downloads its own Node.js, so Node does not need to be installed.
+node {
+	version = '24.22.3'
+	download = true
+	npmInstallCommand = 'ci'
+	nodeProjectDir = file('frontend')
+}
+
+def buildFrontend = tasks.register('buildFrontend', com.github.gradle.node.npm.task.NpmTask) {
+	dependsOn tasks.named('npmInstall')
+	args = ['run', 'build']
+	inputs.dir('frontend/src')
+	inputs.dir('frontend/public')
+	inputs.files('frontend/index.html', 'frontend/package.json', 'frontend/package-lock.json',
+			'frontend/vite.config.js', 'frontend/tailwind.config.js', 'frontend/postcss.config.js')
+	outputs.dir('frontend/dist')
+}
+
+// Bundle the built frontend into the jar so Spring Boot serves it at "/"
+tasks.named('processResources') {
+	dependsOn buildFrontend
+	from('frontend/dist') {
+		into 'static'
+	}
 }

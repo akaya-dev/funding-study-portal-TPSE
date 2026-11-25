@@ -6,8 +6,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class FormPageController {
 
+    // The React app is served at "/"; keep the old /form URL working
     @GetMapping("/form")
     public String showForm() {
-        return "form";
+        return "forward:/index.html";
     }
 }
